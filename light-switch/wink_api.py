@@ -12,7 +12,7 @@ class WinkApi(object):
         self.creds = creds
 
     def on_put(self, req, resp, device_type, device_id):
-    data = req.stream.read()
+        data = req.stream.read()
         wink_resp = self.update_device_state(device_type, device_id, data)
 
         resp.status = str(wink_resp.status_code) + ' ' + wink_resp.reason
@@ -32,11 +32,11 @@ class WinkApi(object):
         headers['Authorization'] = 'Bearer ' + self.creds.get_access_token()
         headers['Content-Type'] = 'application/json'
         resp = requests.put(url, data=data, headers=headers)
-    if resp.status_code == 401:
-        self.creds.refresh_tokens()
-        headers['Authorization'] = 'Bearer ' + self.creds.get_access_token()
-        resp = requests.put(url, data=data, headers=headers)
-    return resp
+        if resp.status_code == 401:
+            self.creds.refresh_tokens()
+            headers['Authorization'] = 'Bearer ' + self.creds.get_access_token()
+            resp = requests.put(url, data=data, headers=headers)
+        return resp
 
     def get_device(self, device_type, device_id):
         url = WINK_API_URL + device_type + '/' + device_id
@@ -44,11 +44,11 @@ class WinkApi(object):
         headers['Authorization'] = 'Bearer ' + self.creds.get_access_token()
         headers['Content-Type'] = 'application/json'
         resp = requests.get(url, headers=headers)
-    if resp.status_code == 401:
-        self.creds.refresh_tokens()
-        headers['Authorization'] = 'Bearer ' + self.creds.get_access_token()
+        if resp.status_code == 401:
+            self.creds.refresh_tokens()
+            headers['Authorization'] = 'Bearer ' + self.creds.get_access_token()
             resp = requests.get(url, headers=headers)
-    return resp
+        return resp
 
 class WinkCredentials(object):
     def __init__(self, path):
