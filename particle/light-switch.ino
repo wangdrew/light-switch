@@ -1,12 +1,15 @@
 // This #include statement was automatically added by the Particle IDE.
 #include "rest_client.h"
 
-RestClient client = RestClient("192.168.69.3", 4200);
+char* serverHostname = "andrew.big.wang";
+int serverPort = 4200;
 
 int button0 = D3;
 int button1 = D4;
 int button2 = D5;
 int button3 = D6;
+
+RestClient client = RestClient(serverHostname, serverPort);
 
 void setup() {
     Serial.begin(9600);
@@ -18,44 +21,34 @@ void setup() {
 
 }
 
-void loop() {
-    int statusCode;
+void makeRequest(char* url, char* body) {
     String response = "";
-    String data = "";
+    int statusCode = client.put(url, body, &response);
+    Particle.publish("LightSwitch", 
+        String::format("Status Code: %d, Response: %s", statusCode, response.c_str()), 60, PRIVATE);
+}
 
+void loop() {
     // Everything off
     if (digitalRead(button0) == LOW) {
-        char* body = "{\"desired_state\": {\"powered\": false}}";
-        statusCode = client.put("/wink/binary_switches/370507", body, &response);
-        data = String::format("Status Code: %d, Response: %s", statusCode, response.c_str());
-        Particle.publish("TestEvent", data, 60, PRIVATE);
-        
-        statusCode = client.put("/wink/light_bulbs/2376917", body, &response);
-        data = String::format("Status Code: %d, Response: %s", statusCode, response.c_str());
-        Particle.publish("TestEvent", data, 60, PRIVATE);
+        makeRequest("/wink/binary_switches/370507", "{\"desired_state\": {\"powered\": false}}");
+        makeRequest("/wink/light_bulbs/2376917", "{\"desired_state\": {\"powered\": false}}");
     }
     
-    // Main light on
+    // Room light on
     else if (digitalRead(button1) == LOW) {
-        char* body = "{\"desired_state\": {\"powered\": true}}";
-        statusCode = client.put("/wink/binary_switches/370507", body, &response);
-        data = String::format("Status Code: %d, Response: %s", statusCode, response.c_str());
-        Particle.publish("TestEvent", data, 60, PRIVATE);
+        makeRequest("/wink/binary_switches/370507", "{\"desired_state\": {\"powered\": true}}");
     }
     
     // Desk lamp on
     else if (digitalRead(button2) == LOW) {
-        char* body = "{\"desired_state\": {\"powered\": true, \"brightness\": 1.00, \"color_model\": \"color_temperature\", \"color_temperature\": 3000}}";
-        statusCode = client.put("/wink/light_bulbs/2376917", body, &response);
-        data = String::format("Status Code: %d, Response: %s", statusCode, response.c_str());
-        Particle.publish("TestEvent", data, 60, PRIVATE);
+        makeRequest("/wink/light_bulbs/2376917", 
+            "{\"desired_state\": {\"powered\": true, \"brightness\": 1.00, \"color_model\": \"color_temperature\", \"color_temperature\": 3000}}");
     }
     
-    // Desk lamp nightlight
+    // Desk lamp "nightlight" mode
     else if (digitalRead(button3) == LOW) {
-        char* body = "{\"desired_state\": {\"powered\": true, \"brightness\": 0.10, \"color_model\": \"color_temperature\", \"color_temperature\": 2000}}";
-        statusCode = client.put("/wink/light_bulbs/2376917", body, &response);
-        data = String::format("Status Code: %d, Response: %s", statusCode, response.c_str());
-        Particle.publish("TestEvent", data, 60, PRIVATE);
+        makeRequest("/wink/light_bulbs/2376917", 
+            "{\"desired_state\": {\"powered\": true, \"brightness\": 0.10, \"color_model\": \"color_temperature\", \"color_temperature\": 2000}}");
     }
 }
