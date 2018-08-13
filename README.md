@@ -1,4 +1,4 @@
-I'm lazy and I don't like getting out of bed to turn off the lights so I bought a [Wink Hub](https://www.wink.com/products/wink-hub-2/) and some [Z-wave switches](http://amzn.to/2EEIUkB) to turn my lights into "smart" lights. Now I'm tired of pulling out my phone to turn off the lights so I'm taking it a step further by building a bed-side button board using the [Spark Photon](https://www.particle.io/products/hardware/photon-wifi) powered by the [Wink API](https://winkapiv2.docs.apiary.io)
+I'm lazy and I hate getting out of bed to turn off the lights so I bought a [Wink Hub](https://www.wink.com/products/wink-hub-2/) and some [Z-wave switches](http://amzn.to/2EEIUkB) which turn my lights into "smart" lights. While not having to get out of bed is a step in the right direction, I still have to pull out my phone, find the app, and turn off the correct lights. Still not too convenient. So I'm taking it a step further by building a bedside button remote using the [Spark Photon](https://www.particle.io/products/hardware/photon-wifi) powered by the [Wink API](https://winkapiv2.docs.apiary.io)
 
 ## Hardware:
 Some prerequisite hardware is required:
@@ -6,13 +6,17 @@ Some prerequisite hardware is required:
 * some "smart" devices to be controlled - Hue light bulbs, smart switches/outlets etc.
 * Some compute resource (desktop computer, AWS, raspberry Pi etc.) capable of running Docker containers (more about this in a second)
 
-And for the buttons board, I opted for something with 4 buttons arranged in a 2x2 grid:
+For the button board, I opted for something with 4 buttons arranged in a 2x2 grid:
 * [Spark Photon](http://amzn.to/2EEqdx6) - $19
 * [2x2 button pad PCB](https://www.sparkfun.com/products/9277) - $5
 * [2x2 button pad](https://www.sparkfun.com/products/7836) - $3
-* [Some RGB LEDs to make it look cool](https://www.sparkfun.com/products/12986) - $3 
+* [Some RGB LEDs to make it look cool](https://www.sparkfun.com/products/12986) - $3
+* 3D printed case (~6m of 1.75mm PLA filament) - < $1
+* 2 x M2x3mm and 4x M3x8mm screws- < $1
 
-Cost of the button board: $31 (excluding all the smart home stuff above)
+Cost of the button board: $32 (excluding all the smart home stuff above)
+
+See [hardware/README.md](hardware/README.md) for assembly instructions and 3D printable STL files.
 
 ## Design:
 There are 2 software components to this system:
