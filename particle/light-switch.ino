@@ -17,7 +17,6 @@
 bool DEBUG_LOG = true;
 char* serverHostname = "192.168.69.3";
 int serverPort = 4200;
-
 RestClient client = RestClient(serverHostname, serverPort);
 
 Adafruit_NeoPixel strip(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
@@ -39,64 +38,77 @@ void setup() {
     lightsOff();
 }
 
-void makeRequest(char* url, char* body) {
+int makeRequest(char* url, char* body) {
     String response = "";
     int statusCode = client.put(url, body, &response);
     if (DEBUG_LOG) {
         Particle.publish("LightSwitch", 
             String::format("Status Code: %d, Response: %s", statusCode, response.c_str()), 60, PRIVATE);
     }
+    return statusCode;
 }
 
 void loop() {
     // Everything off
     if (digitalRead(BUTTON0) == LOW) {
         lightUpRequestMade(2);
-        makeRequest("/wink/binary_switches/370507", "{\"desired_state\": {\"powered\": false}}");
-        makeRequest("/wink/light_bulbs/2376917", "{\"desired_state\": {\"powered\": false}}");
-        lightUpRequestComplete(2);
+        int statusCode = makeRequest("/wink/binary_switches/370507", "{\"desired_state\": {\"powered\": false}}");
+        if (isRequestSuccess(statusCode)) {
+            statusCode = makeRequest("/wink/light_bulbs/2376917", "{\"desired_state\": {\"powered\": false}}");
+        }
+        lightUpRequestComplete(2, isRequestSuccess(statusCode));
     }
     
     // Room light on
     else if (digitalRead(BUTTON1) == LOW) {
         lightUpRequestMade(1);
-        makeRequest("/wink/binary_switches/370507", "{\"desired_state\": {\"powered\": true}}");
-        lightUpRequestComplete(1);
+        int statusCode = makeRequest("/wink/binary_switches/370507", "{\"desired_state\": {\"powered\": true}}");
+        lightUpRequestComplete(1, isRequestSuccess(statusCode));
     }
     
     // Desk lamp on
     else if (digitalRead(BUTTON2) == LOW) {
         lightUpRequestMade(3);
-        makeRequest("/wink/light_bulbs/2376917", 
+        int statusCode = makeRequest("/wink/light_bulbs/2376917",
             "{\"desired_state\": {\"powered\": true, \"brightness\": 1.00, \"color_model\": \"color_temperature\", \"color_temperature\": 3000}}");
-        lightUpRequestComplete(3);  
+        lightUpRequestComplete(3, isRequestSuccess(statusCode));
     }
     
     // Desk lamp "nightlight" mode
     else if (digitalRead(BUTTON3) == LOW) {
         lightUpRequestMade(0);
-        makeRequest("/wink/light_bulbs/2376917", 
+        int statusCode = makeRequest("/wink/light_bulbs/2376917",
             "{\"desired_state\": {\"powered\": true, \"brightness\": 0.10, \"color_model\": \"color_temperature\", \"color_temperature\": 2000}}");
-        lightUpRequestComplete(0);
+        lightUpRequestComplete(0, isRequestSuccess(statusCode));
     }
 }
 
+bool isRequestSuccess(int statusCode) {
+    return statusCode >= 200 && statusCode < 299;
+}
+
 void lightUpRequestMade(int pixel) {
-    strip.setPixelColor(pixel, strip.Color(64, 255, 0));
+    strip.setPixelColor(pixel, strip.Color(64, 128, 0)); // orange
     strip.show();
 }
 
-void lightUpRequestComplete(int pixel) {
+void lightUpRequestComplete(int pixel, bool success) {
     int numFlashes = 3;
+    int delayMs = 50;
+    uint32_t color = strip.Color(128, 0, 0); // green
+    if (!success) {
+        delayMs = 400;
+        color = strip.Color(0, 255, 0); // red
+    }
     
     for (int i=0; i<numFlashes; i++) {
-        strip.setPixelColor(pixel, strip.Color(255, 0, 0));
+        strip.setPixelColor(pixel, color);
         strip.show();
-        delay(50);
-        strip.setPixelColor(pixel, strip.Color(0, 0, 0));
+        delay(delayMs);
+        strip.setPixelColor(pixel, strip.Color(0, 0, 0)); // off
         strip.show();
         if (i < numFlashes-1) {
-            delay(50);
+            delay(delayMs);
         } 
     }
 }
@@ -111,7 +123,6 @@ void lightsOff() {
 /**
 * This stuff is copied from neopixel examples
 */
-
 // Slightly different, this makes the rainbow equally distributed throughout, then wait (ms)
 void rainbowCycle(uint8_t wait) {
   uint16_t i, j;
