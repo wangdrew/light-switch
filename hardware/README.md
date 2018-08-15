@@ -16,7 +16,8 @@ Print settings used for both files:
 * PLA (200 °C extruder / 60 °C bedplate)
 * 0.2mm resolution
 * 30% infill (doesn't really matter since the design is all "walls")
-* No supports/rafts
+* Enable supports (tiny bit needed for the USB hole)
+* No rafts
 
 ## Soldering the PCB
 Unfortunately the [Sparkfun 2x2 button PCB](https://www.sparkfun.com/products/9277) doesn't support individually addressable LEDs and instead supports only the analog LEDs that have a pins for R, G, B and ground. I modified the PCB by scratching out PCB traces and adding additional connections to support the WS8212 addressable LEDs.
