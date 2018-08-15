@@ -1,4 +1,9 @@
-I'm lazy and I hate getting out of bed to turn off the lights so I bought a [Wink Hub](https://www.wink.com/products/wink-hub-2/) and some [Z-wave switches](http://amzn.to/2EEIUkB) which turn my lights into "smart" lights. While not having to get out of bed is a step in the right direction, I still have to pull out my phone, find the app, and turn off the correct lights. Still not too convenient. So I'm taking it a step further by building a bedside button remote using the [Spark Photon](https://www.particle.io/products/hardware/photon-wifi) powered by the [Wink API](https://winkapiv2.docs.apiary.io)
+# light-switch
+Control your lights (and other smart home devices) with an internet-connected button board!
+
+I'm lazy and I hate getting out of bed to turn off the lights. I bought a [Wink Hub](https://www.wink.com/products/wink-hub-2/) and some [Z-wave switches](http://amzn.to/2EEIUkB) which turn my lights into "smart" lights that I can control with my phone. Not having to get out of bed is a step in the right direction, but pulling out my phone, unlocking it, finding the app, and turning off the correct lights is still not convenient! And using a smart speaker such as Amazon Echo or Google Home isn't always great because your voice commands may disturb someone sleeping. 
+
+So I'm taking it a step further by building an internet-connected button board using the [Spark Photon](https://www.particle.io/products/hardware/photon-wifi) that sits next to my bed. The Photon makes requests to the [Wink API](https://winkapiv2.docs.apiary.io) to manipulate the state of my smart home devices - such as controlling the lights. Now I can tap a button on the button board, and the Spark Photon inside makes an authenticated request to the Wink's servers which commands my Wink Hub to turn the lights turn off! This may be the most technologically complex solution to do something stupidly simple - but it works great! 
 
 ## Hardware:
 Some prerequisite hardware is required:
