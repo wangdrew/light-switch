@@ -11,9 +11,19 @@ class WinkApi(object):
     def __init__(self, creds):
         self.creds = creds
 
-    def on_put(self, req, resp, device_type, device_id):
+    def on_put(self, req, resp, device_type, device_id, device_action):
         data = req.stream.read()
-        wink_resp = self.update_device_state(device_type, device_id, data)
+        wink_resp = self.update_device_state("PUT", device_type, device_id, device_action, data)
+
+        resp.status = str(wink_resp.status_code) + ' ' + wink_resp.reason
+        resp.content_type = wink_resp.headers['content-type']
+        resp.body = wink_resp.text
+
+    # Wink API methods: POST for groups, PUT for individual devices
+    # This is just a copy of the PUT handler
+    def on_post(self, req, resp, device_type, device_id, device_action):
+        data = req.stream.read()
+        wink_resp = self.update_device_state("POST", device_type, device_id, device_action, data)
 
         resp.status = str(wink_resp.status_code) + ' ' + wink_resp.reason
         resp.content_type = wink_resp.headers['content-type']
@@ -26,12 +36,17 @@ class WinkApi(object):
         resp.content_type = wink_resp.headers['content-type']
         resp.body = wink_resp.text
 
-    def update_device_state(self, device_type, device_id, data):
-        url = WINK_API_URL + device_type + '/' + device_id + '/desired_state'
+    def update_device_state(self, method, device_type, device_id, device_action, data):
+        url = WINK_API_URL + device_type + '/' + device_id + '/' + device_action
         headers = {}
         headers['Authorization'] = 'Bearer ' + self.creds.get_access_token()
         headers['Content-Type'] = 'application/json'
-        resp = requests.put(url, data=data, headers=headers)
+
+        if method is "POST":
+            resp = requests.post(url, data=data, headers=headers)
+        else:
+            resp = requests.put(url, data=data, headers=headers)
+
         if resp.status_code == 401:
             self.creds.refresh_tokens()
             headers['Authorization'] = 'Bearer ' + self.creds.get_access_token()

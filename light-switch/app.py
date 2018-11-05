@@ -8,5 +8,5 @@ wink_api = WinkApi(wink_creds)
 
 api = application = falcon.API()
 
-api.add_route('/wink/{device_type}/{device_id}', wink_api)
+api.add_route('/wink/{device_type}/{device_id}/{device_action}', wink_api)
 
