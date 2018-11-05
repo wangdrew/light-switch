@@ -17,9 +17,40 @@
 bool DEBUG_LOG = true;
 char* serverHostname = "192.168.69.3";
 int serverPort = 4200;
+
+char photonName[32] = "";
+
 RestClient client = RestClient(serverHostname, serverPort);
 
 Adafruit_NeoPixel strip(PIXEL_COUNT, PIXEL_PIN, PIXEL_TYPE);
+
+char* photon2Config[4][3] = {
+    {"POST","/wink/groups/6870297/activate",
+        "{\"desired_state\": {\"powered\": false}}"},
+    {"PUT","/wink/binary_switches/370507/desired_state",
+        "{\"desired_state\":{\"powered\":true}}"},
+    {"PUT", "/wink/light_bulbs/2376917/desired_state",
+        "{\"desired_state\": {\"powered\": true, \"brightness\": 1.00, \"color_model\": \"color_temperature\", \"color_temperature\": 3000}}"},
+    {"PUT", "/wink/light_bulbs/2376917/desired_state",
+        "{\"desired_state\": {\"powered\": true, \"brightness\": 0.10, \"color_model\": \"color_temperature\", \"color_temperature\": 2000}}"}
+};
+
+char* photon3Config[4][3] = {
+    {"POST","/wink/groups/11886987/activate",
+        "{\"desired_state\":{\"powered\":false}}"},
+    {"PUT","/wink/light_bulbs/3676075/desired_state",
+        "{\"desired_state\": {\"powered\": false}}"},
+    {"PUT", "/wink/light_bulbs/3676075/desired_state",
+        "{\"desired_state\":{\"powered\":true, \"brightness\":1.00}}"},
+    {"PUT", "/wink/light_bulbs/3676075/desired_state",
+        "{\"desired_state\":{\"powered\": true, \"brightness\":0.05}}"}
+};
+
+
+void saveName(const char *topic, const char *data) {
+    strncpy(photonName, data, sizeof(photonName)-1);
+    Serial.println("received " + String(topic) + ": " + String(data));
+}
 
 void setup() {
     Serial.begin(9600);
@@ -36,11 +67,18 @@ void setup() {
     // do something cool when everything's set up
     rainbowCycle(3);
     lightsOff();
+    Particle.subscribe("particle/device/name", saveName);
+    Particle.publish("particle/device/name");  // ask the cloud for the name to be sent to you
 }
 
-int makeRequest(char* url, char* body) {
+int makeRequest(char* method, char* url, char* body) {
     String response = "";
-    int statusCode = client.put(url, body, &response);
+    int statusCode;
+    if (strcmp(method, "POST") == 0) {
+        statusCode = client.post(url, body, &response);
+    } else {
+        statusCode = client.put(url, body, &response);
+    }
     if (DEBUG_LOG) {
         Particle.publish("LightSwitch", 
             String::format("Status Code: %d, Response: %s", statusCode, response.c_str()), 60, PRIVATE);
@@ -48,37 +86,39 @@ int makeRequest(char* url, char* body) {
     return statusCode;
 }
 
+int request(int button) {
+    int statusCode;
+    if (strcmp(photonName, "photon-3") == 0) {
+        statusCode = makeRequest(photon3Config[button][0], photon3Config[button][1], photon3Config[button][2]);
+    } else {
+        statusCode = makeRequest(photon2Config[button][0], photon2Config[button][1], photon2Config[button][2]);
+    }
+    return statusCode;
+}
+
 void loop() {
-    // Everything off
     if (digitalRead(BUTTON0) == LOW) {
         lightUpRequestMade(2);
-        int statusCode = makeRequest("/wink/binary_switches/370507", "{\"desired_state\": {\"powered\": false}}");
-        if (isRequestSuccess(statusCode)) {
-            statusCode = makeRequest("/wink/light_bulbs/2376917", "{\"desired_state\": {\"powered\": false}}");
-        }
+
+        int statusCode = request(BUTTON0);
         lightUpRequestComplete(2, isRequestSuccess(statusCode));
     }
-    
-    // Room light on
+
     else if (digitalRead(BUTTON1) == LOW) {
         lightUpRequestMade(1);
-        int statusCode = makeRequest("/wink/binary_switches/370507", "{\"desired_state\": {\"powered\": true}}");
+        int statusCode = request(BUTTON1);
         lightUpRequestComplete(1, isRequestSuccess(statusCode));
     }
     
-    // Desk lamp on
     else if (digitalRead(BUTTON2) == LOW) {
         lightUpRequestMade(3);
-        int statusCode = makeRequest("/wink/light_bulbs/2376917",
-            "{\"desired_state\": {\"powered\": true, \"brightness\": 1.00, \"color_model\": \"color_temperature\", \"color_temperature\": 3000}}");
+        int statusCode = request(BUTTON2);
         lightUpRequestComplete(3, isRequestSuccess(statusCode));
     }
     
-    // Desk lamp "nightlight" mode
     else if (digitalRead(BUTTON3) == LOW) {
         lightUpRequestMade(0);
-        int statusCode = makeRequest("/wink/light_bulbs/2376917",
-            "{\"desired_state\": {\"powered\": true, \"brightness\": 0.10, \"color_model\": \"color_temperature\", \"color_temperature\": 2000}}");
+        int statusCode = request(BUTTON3);
         lightUpRequestComplete(0, isRequestSuccess(statusCode));
     }
 }
