@@ -67,3 +67,22 @@ To build a new docker image after modifying the server:
 ```
 docker build -t lightswitch:latest .
 ```
+
+## Testing the server locally:
+To run the server locally, first activate the python virtualenv:
+```
+source .venv/bin/activate
+```
+
+If this is the first time starting the environment, install the dependencies:
+```
+pip install -r requirements.txt
+```
+Ensure `light-switch/credentials.json` has the correct tokens and secrets. Then start the gunicorn server:
+```
+gunicorn -b 0.0.0.0:8000 light-switch.app
+```
+After closing the server, deactivate the virtualenv with:
+```
+deactivate
+```
