@@ -14,6 +14,12 @@
 #define PIXEL_TYPE WS2812B
 #define BRIGHTNESS 32  // 0 - 255
 
+// Something in the code is blocking and causing the photon to
+// breathe green because it no longer connects to Particle cloud.
+// Do particle cloud stuff in a separate thread and try to debug
+// where the code freezes with the web console
+SYSTEM_THREAD(ENABLED);
+
 bool DEBUG_LOG = true;
 char* serverHostname = "192.168.69.3";
 int serverPort = 4200;
@@ -32,7 +38,7 @@ char* photon2Config[4][3] = {
     {"PUT", "/wink/light_bulbs/2376917/desired_state",
         "{\"desired_state\": {\"powered\": true, \"brightness\": 1.00, \"color_model\": \"color_temperature\", \"color_temperature\": 3000}}"},
     {"PUT", "/wink/light_bulbs/2376917/desired_state",
-        "{\"desired_state\": {\"powered\": true, \"brightness\": 0.10, \"color_model\": \"color_temperature\", \"color_temperature\": 2000}}"}
+        "{\"desired_state\": {\"powered\": true, \"brightness\": 0.40, \"color_model\": \"color_temperature\", \"color_temperature\": 2500}}"}
 };
 
 char* photon3Config[4][3] = {
@@ -63,6 +69,8 @@ void setup() {
     
     strip.begin();
     strip.setBrightness(BRIGHTNESS);
+
+    waitUntil(Particle.connected);
 
     // do something cool when everything's set up
     rainbowCycle(3);
